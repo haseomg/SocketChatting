@@ -1,0 +1,65 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#607B60"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/userTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#A3C081"
+        android:fontFamily="sans-serif-black"
+        android:text="User"
+        android:gravity="center"
+        android:textColor="#607B60"
+        android:textSize="25sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/messageTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#607B60"
+            android:fontFamily="sans-serif-thin"
+            android:gravity="center"
+            android:textColor="#A3C081"
+            android:textSize="25sp" />
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#A3C081"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/messageEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Type a message" />
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="#33451F"
+            android:text="Send" />
+    </LinearLayout>
+
+<!--    <Button-->
+<!--        android:id="@+id/joinButton"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="#33451F"-->
+<!--        android:text="Join" />-->
+
+</LinearLayout>
+
+
