@@ -2,6 +2,7 @@ package com.example.socketchatting;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,31 +14,36 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
     private String TAG = "[MainActiviy]";
+    static Context context;
+
     private Handler handler;
     private InetAddress serverAddress;
     private Socket socket;
     private PrintWriter sendWriter;
-    private ArrayList<PrintWriter> chatList;
-
-    private String ip = "54.180.155.66";
-    private String host = "192.168.35.159";
-    private int port = 8888;
+    //    private String ip = "54.180.155.66";
+//    private String host = "192.168.35.159";
+    private String host = "127.0.0.1";
+    private int port = 7777;
 
     TextView chatView, userTextView;
     EditText message;
     Button send;
     String userID, sendMsg, read;
-    MyServer myServer;
+    //    MyServer myServer;
     MyClient myClient;
 
     @Override
@@ -49,13 +55,8 @@ public class MainActivity extends AppCompatActivity {
     } // onCreate END
 
 
-
-
-
-
-
-
     public void initialize() {
+        context = this;
         chatView = findViewById(R.id.chatView);
         userTextView = findViewById(R.id.userTextView);
         message = findViewById(R.id.messageEditText);
@@ -65,12 +66,40 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         userID = intent.getStringExtra("userName");
         userTextView.setText(userID);
-        myServer = new MyServer();
-        chatList = new ArrayList<PrintWriter>();
-        setThread();
+//        myServer = new MyServer();
+//        chatList = new ArrayList<PrintWriter>();
+//        setThread();
+        setServer();
         setSend();
-//        myClient = new MyClient();
+        myClient = new MyClient();
     } // initialize END
+
+    void setServer() {
+        new Thread() {
+            @Override
+            public void run() {
+                ServerSocket serverSocket;
+                try {
+                    serverSocket = new ServerSocket(7777);
+                    System.out.println("⎻⎻⎻⎻⎻ SERVER READY ⎻⎻⎻⎻⎻");
+                    socket = serverSocket.accept();
+                    System.out.println(TAG + "socket check : " + socket);
+                    Sender sender = new Sender(socket);
+                    System.out.println(TAG + "sender check : " + sender);
+                    Receiver receiver = new Receiver(socket);
+                    System.out.println(TAG + "Receiver class initialize check : " + receiver);
+
+                    sender.start();
+                    System.out.println(TAG + "sender start");
+                    receiver.start();
+                    System.out.println(TAG + "receiver start");
+                } catch (IOException e) {
+                    System.out.println(TAG + "⎻⎻⎻⎻⎻ ERROR ⎻⎻⎻⎻⎻ : " + e);
+                } // catch END
+            }
+        }.start();
+    } // setServer END
+
 
     public void setThread() {
         new Thread() {
@@ -79,24 +108,27 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Log.i(TAG, "setThread run Method Try()");
                     serverAddress = InetAddress.getByName(host);
-                    socket = new Socket(serverAddress, port);
-                    Log.i(TAG, "setThread sendWriter create before : " + sendWriter);
+                    Log.i(TAG, "setThread serverAddress : " + serverAddress);
+                    socket = new Socket(host, port);
+                    Log.i(TAG, "setThread socket : " + socket.toString());
                     sendWriter = new PrintWriter(socket.getOutputStream());
-                    Log.i(TAG, "setThread sendWriter create after : " + sendWriter);
+                    Log.i(TAG, "setThread sendWriterr : " + sendWriter.toString());
                     BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //                    myClient.connect(host, port);
+
                     while (true) {
                         Log.i(TAG, "setThread run Method while(true)");
                         read = input.readLine();
                         Log.i(TAG, "--------------- READ CHECK --------------- " + read);
+
                         if (read != null) {
                             Log.i(TAG, "setThread run Method while(true) if (read != null) : " + read);
-                            chatView.setText(read);
                             handler.post(new msgUpdate(read));
+
                         } else {
                             Log.i(TAG, "read == null : " + read);
-                        }
-                    }
+                        } // else END
+                    } // while (true) END
                 } catch (IOException e) {
                     Log.e(TAG, "--------------- SET THREAD IOEXCEPTION ERROR --------------- " + e);
                 } // catch End
@@ -108,8 +140,8 @@ public class MainActivity extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "setSend Method()");
                 sendMsg = message.getText().toString();
-//                chatList.add(sendWriter);
                 Log.i(TAG, "sendMsg Check 1 : " + sendMsg);
 
 //                if (message.equals("") || message == null) {
@@ -123,23 +155,13 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         super.run();
                         try {
-                            Log.i(TAG, "setSend run Method");
-
-                            Log.i(TAG, "setSend run Method initialize before 1");
-                            serverAddress = InetAddress.getByName(ip);
-                            Log.i(TAG, "setSend run Method initialize before 2");
-//                            socket = new Socket(serverAddress, port);
-                            Log.i(TAG, "setSend run Method initialize before 3");
-//                            sendWriter = new PrintWriter(socket.getOutputStream());
-//                            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                            Log.i(TAG, "setSend run Method initialize after");
-
-                            try {
-                                Log.i(TAG, "setSend run Method sendWriter Check : " + sendWriter);
-                            } catch (NullPointerException e) {
-                                Log.e(TAG, "--------------- SET SEND NULL ERROR --------------- " + e);
-                            }
+//                            try {
+//                                Log.i(TAG, "setSend run Method sendWriter Check : " + sendWriter);
+//                            } catch (NullPointerException e) {
+//                                Log.e(TAG, "--------------- SET SEND NULL ERROR --------------- " + e);
+//                            }  // catch END
                             // TODO. ERROR TIMING - sendWriter Null
+                            Log.i(TAG, "sendWriter Check : " + sendWriter);
                             sendWriter.println(userID + "> " + sendMsg);
                             Log.i(TAG, userID + "> " + sendMsg);
                             sendWriter.flush();
@@ -158,30 +180,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-//        try {
-//            in.close();
-//            socket.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch End
+        try {
+            sendWriter.close();
+            socket.close();
+        } catch (IOException e) {
+            Log.e(TAG, "------- on stop ERROR -------  : " + e);
+        }
     } // onStop End
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try {
-            if (socket != null) {
-                socket.close();
-            }
-//            if (input !=null){
-//                in.close();
+//        try {
+//            if (socket != null) {
+//                socket.close();
 //            }
-            if (sendWriter != null) {
-                sendWriter.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+////            if (input !=null){
+////                in.close();
+////            }
+//            if (sendWriter != null) {
+//                sendWriter.close();
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
 
@@ -198,5 +220,75 @@ public class MainActivity extends AppCompatActivity {
             chatView.setText(message.getText().toString() + msg + "\n");
         } // run END
     } // msgUpdate END
+
+    class Sender extends Thread {
+        Socket socket;
+        DataOutputStream out;
+        String name;
+
+        String TAG = "[Sender Class]";
+        String constructor = "Sender Constructor";
+
+        Sender(Socket socket) {
+            Log.i(TAG, constructor);
+            this.socket = socket;
+            try {
+                Log.i(TAG, constructor + "try");
+                out = new DataOutputStream(socket.getOutputStream());
+                Log.i(TAG, constructor + "out check : " + out);
+                name = "[" + socket.getInetAddress() + ":" + socket.getPort() + "]";
+                Log.i(TAG, constructor + "name check : " + name);
+            } catch (IOException e) {
+                Log.i(TAG, constructor + "ERROR CHECK : " + e);
+            } // catch END
+        } // Constructor END
+
+        @Override
+        public void run() {
+            Log.i(TAG, "run Method");
+            while (message.getText().toString() != null) {
+                Log.i(TAG, "while (message.getText().toStringg != null");
+                try {
+                    Log.i(TAG, "try");
+                    out.writeUTF(userID + "> " + message.getText().toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.i(TAG, "ERROR CHECK : " + e);
+                } // catck END
+            } // while END
+        } // run END
+    } // Sender Class END
+
+   class Receiver extends Thread {
+        Socket socket;
+        DataInputStream in;
+        String TAG = "[Receiver Class]";
+
+        Receiver(Socket socket) {
+            try {
+                System.out.println(TAG + "Receiver Constructor try");
+                in = new DataInputStream(socket.getInputStream());
+            } catch (IOException e) {
+                System.out.println(TAG + "⎻⎻⎻⎻⎻ Receiver Constructor catch ERROR ⎻⎻⎻⎻⎻ : " + e);
+            } // catch END
+        } // constructor END
+
+
+
+       @Override
+       public void run() {
+           System.out.println(TAG + "run Method");
+           while (in != null) {
+               System.out.println(TAG + "while (in != null)");
+               try {
+                   System.out.println(TAG + "run Method try");
+                   System.out.println("🚼Client : " + in.readUTF());
+               } catch (IOException e) {
+                   System.out.println(TAG + "⎻⎻⎻⎻⎻ run Method catch ERROR ⎻⎻⎻⎻⎻ : " + e);
+               } // catch END
+           } // while END
+       } // run END
+
+    } // Receiver CLASS END
 
 } // CLASS END
